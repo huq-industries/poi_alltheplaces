@@ -7,10 +7,8 @@ on:
 
 jobs:
   deploy:
-
     name: Deploy to Zyte production project
     runs-on: ubuntu-latest
-
     env:
       SHUB_APIKEY: ${{ secrets.scrapycloud_api_key }}
       SHUB_PROJECTID: ${{ secrets.scrapycloud_project_id }}
@@ -18,16 +16,40 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pipenv'
+
       - name: Install pipenv
         run: |
-          pip --quiet install pipenv
+          python -m pip install --upgrade pip
+          pip install pipenv
+
+      - name: Cache pipenv virtualenv
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+
       - name: Install dependencies
         run: |
           pipenv install --dev
-      - name: Deploy code to scrapy cloud
-        shell: bash
-        run: shub deploy ${SHUB_PROJECTID} --version "master-${GITHUB_SHA}"
+
+      - name: Install shub
+        run: |
+          pipenv run pip install shub
+
+      - name: Deploy code to Scrapy Cloud
+        run: |
+          pipenv run shub deploy ${SHUB_PROJECTID} --version "master-${GITHUB_SHA}"
+        env:
+          SHUB_APIKEY: ${{ secrets.scrapycloud_api_key }}
+          SHUB_PROJECTID: ${{ secrets.scrapycloud_project_id }}
+
+      - name: Verify deployment
+        run: |
+          echo "Deployment completed. Verify on Zyte dashboard."
