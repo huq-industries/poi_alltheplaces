@@ -49,7 +49,3 @@ jobs:
         env:
           SHUB_APIKEY: ${{ secrets.scrapycloud_api_key }}
           SHUB_PROJECTID: ${{ secrets.scrapycloud_project_id }}
-
-      - name: Verify deployment
-        run: |
-          echo "Deployment completed. Verify on Zyte dashboard."
