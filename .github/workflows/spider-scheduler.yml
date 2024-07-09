@@ -35,4 +35,4 @@ jobs:
         # (long-term decision pending on excluding them)
         # Priority 0 while we only have one container group - dev spiders will run first
         run: |
-          pipenv run scrapy list | xargs -n1 | sort -r | xargs -P 10 -I § pipenv run shub schedule -p 0 $SHUB_PROJECTID/§
+          pipenv run scrapy list | xargs -n1 | sort -r | xargs -P 5 -I § pipenv run shub schedule -p 0 $SHUB_PROJECTID/§
