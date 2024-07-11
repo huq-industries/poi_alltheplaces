@@ -26,8 +26,8 @@ jobs:
 
       - name: Sync spiders folder
         run: |
-          git checkout main
-          git checkout upstream/main -- spiders
+          git checkout master
+          git checkout upstream/master -- spiders
           if ! git diff --staged --quiet; then
             git commit -m "Sync spiders folder with upstream"
             git push
