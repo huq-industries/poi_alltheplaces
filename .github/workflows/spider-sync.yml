@@ -32,21 +32,21 @@ jobs:
           # Fetch upstream master
           git fetch upstream master
           
-          # Check if there are changes in the upstream spiders folder
-          if git diff --quiet upstream/master:spiders master:spiders; then
-            echo "No changes in spiders folder to sync"
+          # Check if there are changes in the upstream locations/spiders folder
+          if git diff --quiet upstream/master:locations/spiders master:locations/spiders; then
+            echo "No changes in locations/spiders folder to sync"
           else
-            # Checkout only the spiders folder from upstream master
-            git checkout upstream/master -- spiders
+            # Checkout only the locations/spiders folder from upstream master
+            git checkout upstream/master -- locations/spiders
             
             # Stage the changes
-            git add spiders
+            git add locations/spiders
             
             # Commit if there are changes
             if ! git diff --staged --quiet; then
-              git commit -m "Sync spiders folder with upstream master"
+              git commit -m "Sync locations/spiders folder with upstream master"
               git push origin master
-              echo "Changes from upstream master's spiders folder have been synced and pushed"
+              echo "Changes from upstream master's locations/spiders folder have been synced and pushed"
             else
               echo "No changes to commit after checkout"
             fi
