@@ -1,4 +1,4 @@
-name: Sync Spiders Folder
+name: Sync Spiders from Upstream Master
 
 on:
   schedule:
@@ -22,18 +22,36 @@ jobs:
       - name: Add upstream remote
         run: |
           git remote add upstream https://github.com/alltheplaces/alltheplaces.git
-          git fetch upstream
+          git fetch upstream master
 
-      - name: Sync spiders folder
+      - name: Sync spiders folder from upstream master
         run: |
+          # Ensure we're on the master branch
           git checkout master
-          git checkout upstream/master -- spiders
-          if ! git diff --staged --quiet; then
-            git commit -m "Sync spiders folder with upstream"
-            git push
+          
+          # Fetch upstream master
+          git fetch upstream master
+          
+          # Check if there are changes in the upstream spiders folder
+          if git diff --quiet upstream/master:spiders master:spiders; then
+            echo "No changes in spiders folder to sync"
           else
-            echo "No changes to commit"
+            # Checkout only the spiders folder from upstream master
+            git checkout upstream/master -- spiders
+            
+            # Stage the changes
+            git add spiders
+            
+            # Commit if there are changes
+            if ! git diff --staged --quiet; then
+              git commit -m "Sync spiders folder with upstream master"
+              git push origin master
+              echo "Changes from upstream master's spiders folder have been synced and pushed"
+            else
+              echo "No changes to commit after checkout"
+            fi
           fi
+        shell: /usr/bin/bash -e {0}
 
       - name: Check for conflicts
         run: |
