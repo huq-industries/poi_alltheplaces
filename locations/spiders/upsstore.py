@@ -1,6 +1,5 @@
-from scrapy.spiders import SitemapSpider
-
 from locations.structured_data_spider import StructuredDataSpider
+from scrapy.spiders import SitemapSpider
 
 
 class UpsStoreSpider(SitemapSpider, StructuredDataSpider):

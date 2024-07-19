@@ -1,7 +1,6 @@
-from scrapy.spiders import SitemapSpider
-
 from locations.google_url import extract_google_position
 from locations.linked_data_parser import LinkedDataParser
+from scrapy.spiders import SitemapSpider
 
 
 class RitzCarltonSpider(SitemapSpider):

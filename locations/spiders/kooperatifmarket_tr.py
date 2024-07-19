@@ -1,10 +1,9 @@
 import scrapy
-
 from locations.categories import Categories, apply_category
 from locations.items import Feature
 
 
-class KooperatifmarketTrSpider(scrapy.Spider):
+class KooperatifmarketTRSpider(scrapy.Spider):
     name = "kooperatifmarket_tr"
     item_attributes = {"brand": "Türkiye Tarım Kredi Kooperatif Market", "brand_wikidata": "Q127328776"}
     start_urls = ["https://www.kooperatifmarket.com.tr/api/stores"]

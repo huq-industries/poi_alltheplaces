@@ -1,10 +1,9 @@
 import re
 
-from scrapy import Spider
-from unidecode import unidecode
-
 from locations.hours import DAYS_PL, OpeningHours
 from locations.items import Feature
+from scrapy import Spider
+from unidecode import unidecode
 
 
 class PaczkomatInpostPLSpider(Spider):
@@ -25,10 +24,12 @@ class PaczkomatInpostPLSpider(Spider):
             item["ref"] = poi["n"]
             item["extras"]["description"] = poi["d"]
             item["city"] = poi["c"]
-            item["street"] = poi["e"]
-            item["state"] = poi["r"]
+            if "/" not in poi["e"]:
+                item["street"] = poi["e"].removesuffix(poi["b"]).strip()
             item["postcode"] = poi["o"]
             if poi["b"] != "b/n":
+                item["housenumber"] = poi["b"]
+            if poi["b"].lower() not in ["b/n", "bn", "b.n", "b.n.", "bn.", "brak numeru"]:
                 item["housenumber"] = poi["b"]
             item["lat"] = poi["l"]["a"]
             item["lon"] = poi["l"]["o"]
@@ -42,7 +43,7 @@ class PaczkomatInpostPLSpider(Spider):
             # poi["g"]
             # poi["p"]  # payment
 
-            self.parse_slug(item)
+            item["website"] = f'https://inpost.pl/{self.parse_slug(item, poi["e"], poi["r"])}'
             if poi["h"] == "24/7":
                 item["opening_hours"] = "24/7"
             else:
@@ -50,10 +51,10 @@ class PaczkomatInpostPLSpider(Spider):
                 item["opening_hours"].add_ranges_from_string(poi["h"], days=DAYS_PL)
             yield item
 
-    def parse_slug(self, item):
-        slug_parts = ["paczkomat", item["city"], item["ref"], item["street"], "paczkomaty", item["state"]]
+    def parse_slug(self, item, street, state):
+        slug_parts = ["paczkomat", item["city"], item["ref"], street, "paczkomaty", state]
         slug = "-".join(map(lambda x: unidecode(x.lower().strip()), slug_parts))
         slug = re.sub(r"[·/_:; ]", "-", slug)
         slug = re.sub(r"[^a-z0-9 -]", "", slug)
         slug = re.sub(r"-+", "-", slug)
-        item["website"] = f"https://inpost.pl/{slug}"
+        return slug
