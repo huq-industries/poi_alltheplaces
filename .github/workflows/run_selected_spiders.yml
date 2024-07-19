@@ -1,0 +1,52 @@
+name: Run Selected Spiders
+
+on:
+  workflow_dispatch:
+    inputs:
+      spiders:
+        description: 'List of spiders to run (comma-separated)'
+        required: true
+        type: string
+
+jobs:
+  run-spiders:
+    name: Run selected spiders on Zyte production project
+    runs-on: ubuntu-latest
+    env:
+      SHUB_PROJECTID: ${{ secrets.scrapycloud_project_id }}
+      SHUB_APIKEY: ${{ secrets.scrapycloud_api_key }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pipenv'
+      
+      - name: Install pipenv
+        run: pip --quiet install pipenv
+      
+      - name: Install dependencies
+        run: pipenv install --dev
+      
+      - name: Validate and run spiders
+        shell: bash
+        run: |
+          IFS=',' read -ra SPIDER_ARRAY <<< "${{ github.event.inputs.spiders }}"
+          VALID_SPIDERS=()
+          for spider in "${SPIDER_ARRAY[@]}"; do
+            if [ -f "locations/spiders/${spider}.py" ]; then
+              VALID_SPIDERS+=("$spider")
+            else
+              echo "Warning: Spider file for ${spider} not found. Skipping."
+            fi
+          done
+          
+          if [ ${#VALID_SPIDERS[@]} -eq 0 ]; then
+            echo "No valid spiders found. Exiting."
+            exit 1
+          fi
+          
+          echo "Running valid spiders: ${VALID_SPIDERS[*]}"
+          parallel -j 5 pipenv run shub schedule -p 0 $SHUB_PROJECTID/{} ::: "${VALID_SPIDERS[@]}"
