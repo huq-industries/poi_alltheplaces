@@ -32,13 +32,16 @@ jobs:
       
       - name: Validate and run spiders
         shell: bash
+        continue-on-error: true
         run: |
           IFS=',' read -ra SPIDER_ARRAY <<< "${{ github.event.inputs.spiders }}"
           VALID_SPIDERS=()
+          INVALID_SPIDERS=()
           for spider in "${SPIDER_ARRAY[@]}"; do
             if [ -f "locations/spiders/${spider}.py" ]; then
               VALID_SPIDERS+=("$spider")
             else
+              INVALID_SPIDERS+=("$spider")
               echo "Warning: Spider file for ${spider} not found. Skipping."
             fi
           done
@@ -49,4 +52,13 @@ jobs:
           fi
           
           echo "Running valid spiders: ${VALID_SPIDERS[*]}"
-          parallel -j 5 pipenv run shub schedule -p 0 $SHUB_PROJECTID/{} ::: "${VALID_SPIDERS[@]}"
+          echo "Skipped invalid spiders: ${INVALID_SPIDERS[*]}"
+          
+          for spider in "${VALID_SPIDERS[@]}"; do
+            echo "Scheduling spider: $spider"
+            if pipenv run shub schedule -p 0 $SHUB_PROJECTID/$spider; then
+              echo "Successfully scheduled $spider"
+            else
+              echo "Failed to schedule $spider"
+            fi
+          done
