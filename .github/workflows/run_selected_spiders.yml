@@ -60,7 +60,7 @@ jobs:
           
           for spider in "${VALID_SPIDERS[@]}"; do
             echo "Scheduling spider: $spider"
-            if pipenv run shub schedule -p $SHUB_PROJECTID $spider; then
+            if pipenv run shub schedule -p 0 $SHUB_PROJECTID/$spider; then
               SUCCESSFUL_SPIDERS+=("$spider")
               echo "Successfully scheduled $spider"
             else
