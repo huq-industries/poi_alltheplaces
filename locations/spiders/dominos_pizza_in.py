@@ -1,9 +1,10 @@
 import logging
 
-from locations.items import Feature
 from scrapy import Request
 from scrapy.spiders import SitemapSpider
 from scrapy.utils.sitemap import Sitemap
+
+from locations.items import Feature
 
 logger = logging.getLogger(__name__)
 

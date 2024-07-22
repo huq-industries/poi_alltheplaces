@@ -2,9 +2,10 @@ from typing import Any
 from urllib.parse import urlencode
 
 import scrapy
+from scrapy.http import JsonRequest, Response
+
 from locations.categories import Categories, apply_category
 from locations.items import Feature
-from scrapy.http import JsonRequest, Response
 
 
 class EmobilitaBrnoCZSpider(scrapy.Spider):
