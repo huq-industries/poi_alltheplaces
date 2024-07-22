@@ -45,7 +45,22 @@ jobs:
 
       - name: Deploy code to Scrapy Cloud
         run: |
-          pipenv run shub deploy ${SHUB_PROJECTID} --version "master-${GITHUB_SHA}"
+          set -e
+          exit_code=0
+          
+          for spider in $(ls locations/spiders/*.py); do
+            echo "Deploying $spider..."
+            pipenv run shub deploy ${SHUB_PROJECTID} --spider $spider --version "master-${GITHUB_SHA}" || exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo "::warning::Deployment failed for $spider but continuing with the next spider."
+              exit_code=0  # Reset exit code to continue
+            fi
+          done
+          
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::One or more spiders failed to deploy. Check the logs for more details."
+            exit $exit_code
+          fi
         env:
           SHUB_APIKEY: ${{ secrets.scrapycloud_api_key }}
           SHUB_PROJECTID: ${{ secrets.scrapycloud_project_id }}
