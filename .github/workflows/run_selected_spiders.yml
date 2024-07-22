@@ -31,12 +31,16 @@ jobs:
         run: pipenv install --dev
       
       - name: Validate and run spiders
+        id: run-spiders
         shell: bash
         continue-on-error: true
         run: |
           IFS=',' read -ra SPIDER_ARRAY <<< "${{ github.event.inputs.spiders }}"
           VALID_SPIDERS=()
           INVALID_SPIDERS=()
+          SUCCESSFUL_SPIDERS=()
+          FAILED_SPIDERS=()
+          
           for spider in "${SPIDER_ARRAY[@]}"; do
             if [ -f "locations/spiders/${spider}.py" ]; then
               VALID_SPIDERS+=("$spider")
@@ -56,9 +60,30 @@ jobs:
           
           for spider in "${VALID_SPIDERS[@]}"; do
             echo "Scheduling spider: $spider"
-            if pipenv run shub schedule -p 0 $SHUB_PROJECTID/$spider; then
+            if pipenv run shub schedule -p $SHUB_PROJECTID $spider; then
+              SUCCESSFUL_SPIDERS+=("$spider")
               echo "Successfully scheduled $spider"
             else
+              FAILED_SPIDERS+=("$spider")
               echo "Failed to schedule $spider"
             fi
           done
+          
+          echo "::set-output name=successful_spiders::${SUCCESSFUL_SPIDERS[*]}"
+          echo "::set-output name=failed_spiders::${FAILED_SPIDERS[*]}"
+          echo "::set-output name=invalid_spiders::${INVALID_SPIDERS[*]}"
+
+      - name: Report results
+        run: |
+          SUCCESSFUL_SPIDERS="${{ steps.run-spiders.outputs.successful_spiders }}"
+          FAILED_SPIDERS="${{ steps.run-spiders.outputs.failed_spiders }}"
+          INVALID_SPIDERS="${{ steps.run-spiders.outputs.invalid_spiders }}"
+          
+          SUCCESSFUL_COUNT=$(echo $SUCCESSFUL_SPIDERS | awk -F',' '{print NF}')
+          FAILED_COUNT=$(echo $FAILED_SPIDERS | awk -F',' '{print NF}')
+          INVALID_COUNT=$(echo $INVALID_SPIDERS | awk -F',' '{print NF}')
+          
+          echo "Summary:"
+          echo "Successfully run spiders (${SUCCESSFUL_COUNT}): $SUCCESSFUL_SPIDERS"
+          echo "Failed to run spiders (${FAILED_COUNT}): $FAILED_SPIDERS"
+          echo "Invalid spiders (${INVALID_COUNT}): $INVALID_SPIDERS"
