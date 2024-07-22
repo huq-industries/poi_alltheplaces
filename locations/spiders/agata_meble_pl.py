@@ -1,7 +1,6 @@
 from urllib.parse import urljoin
 
 import scrapy
-
 from locations.dict_parser import DictParser
 
 
@@ -16,6 +15,6 @@ class AgataMeblePLSpider(scrapy.Spider):
             if poi["Slug"] == "globalny":
                 continue
             item = DictParser.parse(poi)
-            item["branch"] = item.pop("name", None)
+            item.pop("name", None)
             item["website"] = urljoin("https://www.agatameble.pl/salon/", poi["Slug"])
             yield item

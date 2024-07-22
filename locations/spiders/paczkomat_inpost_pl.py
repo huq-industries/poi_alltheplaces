@@ -25,11 +25,27 @@ class PaczkomatInpostPLSpider(Spider):
             item["extras"]["description"] = poi["d"]
             item["city"] = poi["c"]
             if "/" not in poi["e"]:
-                item["street"] = poi["e"].removesuffix(poi["b"]).strip()
+                item["street"] = (
+                    poi["e"].removeprefix("ul.").removesuffix(poi["b"]).replace("-go", "").strip()
+                )
+                item["street"] = item["street"][:1].upper() + item["street"][1:]
+                if item["street"].startswith("Al."):
+                    item["street"] = "Aleja " + item["street"][3:].strip()
+                if item["street"].startswith("Gen."):
+                    item["street"] = "Generała " + item["street"][4:].strip()
+                if item["street"].startswith("Ks."):
+                    item["street"] = "Księdza " + item["street"][3:].strip()
+                if item["street"].startswith("Os.") or item["street"].startswith("Oś."):
+                    item["street"] = "Osiedle " + item["street"][3:].strip()
+                if item["street"].startswith("Płk."):
+                    item["street"] = "Pułkownika " + item["street"][4:].strip()
+                if item["street"].startswith("Pl."):
+                    item["street"] = "Plac " + item["street"][3:].strip()
+                if item["street"].startswith("Plac "):
+                    item["extras"]["addr:place"] = item["street"]
+                    item["street"] = ""
             item["postcode"] = poi["o"]
-            if poi["b"] != "b/n":
-                item["housenumber"] = poi["b"]
-            if poi["b"].lower() not in ["b/n", "bn", "b.n", "b.n.", "bn.", "brak numeru"]:
+            if poi["b"].lower() not in ["b/n", "bn", "b.n", "b.n.", "bn.", "brak numeru", "n/n"]:
                 item["housenumber"] = poi["b"]
             item["lat"] = poi["l"]["a"]
             item["lon"] = poi["l"]["o"]

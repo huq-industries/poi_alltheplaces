@@ -6,7 +6,6 @@ from locations.dict_parser import DictParser
 from locations.hours import OpeningHours
 from locations.items import Feature
 from locations.spiders.mcdonalds import McdonaldsSpider
-from scrapy.http import XmlResponse
 
 
 class McdonaldsPHSpider(scrapy.Spider):

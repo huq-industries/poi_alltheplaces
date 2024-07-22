@@ -1,12 +1,11 @@
 import json
 from typing import Iterable
 
-from scrapy import Request, Spider
-from scrapy.http import Response
-
 from locations.dict_parser import DictParser
 from locations.hours import OpeningHours
 from locations.items import Feature
+from scrapy import Request, Spider
+from scrapy.http import Response
 
 
 class EmpikPLSpider(Spider):
@@ -29,7 +28,7 @@ class EmpikPLSpider(Spider):
             properties["email"] = properties["email"].strip()
             properties["phone"] = shop["phone"] or shop["cellPhone"]
             properties["website"] = "https://www.empik.com" + shop["storePage"]
-            properties["branch"] = properties.pop("name", None)
+            properties.pop("name", None)
             properties["opening_hours"] = OpeningHours()
 
             hours = {
